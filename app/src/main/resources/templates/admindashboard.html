@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background-color: green;
+        }
+
+        .status-closed {
+            background-color: crimson;
+        }
+
+        .forward-button {
+            background-color: #007BFF;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .forward-button:hover {
+            background-color: #0056b3;
+        }
+
+        li.job-item {
+            background-color: #111;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="dashboard-header">
+        <div class="logo-container">
+            <img src="/images/logoPesu.png" alt="PES Logo" class="logo">
+        </div>
+        <div class="logout-container">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="myBtn logout-button">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="dashboard-content">
+        <h1>Welcome to the Admin Dashboard</h1>
+        <p>Here you can manage students, job postings, and placement statistics.</p>
+        
+        <!-- Button to View Job Openings -->
+        <button id="view-job-openings-btn" class="myBtn">View Job Openings</button>
+
+        <!-- Section for displaying job openings -->
+        <div id="job-openings-list" style="display:none; margin-top: 20px;">
+            <h3>Job Openings:</h3>
+            <ul id="job-openings-ul">
+                <!-- Job openings will be displayed here dynamically -->
+            </ul>
+        </div>
+        <!-- Button to Handle Withdraw Requests -->
+        <button id="handle-withdraw-requests-btn" class="myBtn">Handle Withdraw Requests</button>
+
+        <!-- Section to show withdraw requests -->
+        <div id="withdraw-requests-list" style="display:none; margin-top: 20px;">
+            <h3>Withdraw Requests:</h3>
+            <ul id="withdraw-requests-ul"></ul>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('view-job-openings-btn').addEventListener('click', function() {
+            const jobOpeningsSection = document.getElementById('job-openings-list');
+            jobOpeningsSection.style.display = jobOpeningsSection.style.display === 'none' ? 'block' : 'none';
+
+            fetch('/api/job-openings')
+                .then(response => response.json())
+                .then(data => {
+                    const jobList = document.getElementById('job-openings-ul');
+                    jobList.innerHTML = '';
+                    data.forEach(job => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('job-item');
+
+                        const statusClass = job.isOpen ? '' : 'status-closed';
+                        const statusText = job.isOpen ? 'Open' : 'Closed';
+
+                        listItem.innerHTML = `    
+                            <div class="status-badge ${statusClass}">${statusText}</div>
+                            <strong>${job.jobTitle}</strong> at ${job.companyName}<br>
+                            <small>Branch: ${job.preferredBranch}, Min GPA: ${job.minGpa}, Rounds Left: ${job.numberOfRoundsLeft}</small>
+                            <p>${job.jobDescription}</p>
+                            <button class="forward-button" onclick="forwardJob(${job.jobID})">Forward</button>
+                            <hr>
+                        `;
+                        jobList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Error fetching job openings:', error));
+        });
+
+        function forwardJob(jobID) {
+            // Debug print statement to show the URL being called
+            const url = `/api/forward-job/${jobID}`;
+
+            // Call backend to forward job
+            fetch(url, {
+                method: 'POST',
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Job forwarded successfully!');
+                } else {
+                    alert('Error forwarding the job.');
+                }
+            })
+            .catch(error => {
+                console.error('Error forwarding job:', error);
+            });
+        }
+
+        document.getElementById('handle-withdraw-requests-btn').addEventListener('click', function () {
+            const withdrawSection = document.getElementById('withdraw-requests-list');
+            withdrawSection.style.display = withdrawSection.style.display === 'none' ? 'block' : 'none';
+
+            fetch('/api/admin/withdraw-requests') // backend endpoint
+            .then(response => response.json())
+            .then(data => {
+                const requestList = document.getElementById('withdraw-requests-ul');
+                requestList.innerHTML = '';
+                data.forEach(req => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('job-item');
+
+                    // Fixed code to access nested `id.srn` and `id.jobId`
+                    listItem.innerHTML = `
+                        <strong>${req.id.srn}</strong> requested to withdraw from Job ID: <strong>${req.id.jobId}</strong>
+                        <button class="forward-button" onclick="acceptWithdraw('${req.id.srn}', ${req.id.jobId})">Accept</button>
+                    `;
+                    requestList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error fetching withdraw requests:', error));
+        });
+
+        function acceptWithdraw(srn, jobId) {
+            fetch('/api/admin/accept-withdraw', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ srn, jobId })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Withdraw request accepted.');
+                    // Refresh the list
+                    document.getElementById('handle-withdraw-requests-btn').click();
+                } else {
+                    alert('Error accepting withdraw request.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error accepting withdraw request.');
+            });
+        }
+    </script>
+
+</body>
+</html>

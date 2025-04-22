@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;
+    background: url('../images/transparent_pes_globe.png') no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
+}
+
+/* Header styles */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* Logo */
+.logo {
+    height: 60px;
+}
+
+/* Logout Button */
+.logout-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    background-color: #0056b3;
+}
+
+/* Main content area */
+.dashboard-content {
+    text-align: center;
+    margin-top: 100px;
+    background-color: rgba(0, 0, 0, 0.5);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 40px;
+    border-radius: 10px;
+}
+
+.dashboard-content h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+.dashboard-content p {
+    font-size: 18px;
+    color: #dddddd;
+}
+
+/* Job Openings List */
+#job-openings-ul li {
+    background-color: #000; /* Black background */
+    color: #fff; /* White text */
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px; /* Rounded corners */
+    border: 1px solid #fff; /* White border for better contrast */
+}
+
+/* Additional styling for the job opening details */
+#job-openings-ul li strong {
+    font-size: 1.2em;
+}
+
+#job-openings-ul li small {
+    color: #bbb; /* Light grey color for smaller text */
+}
+
+#job-openings-ul li p {
+    margin-top: 5px;
+}
+
+/* Optional: Add some hover effects */
+#job-openings-ul li:hover {
+    background-color: #333; /* Darken background on hover */
+}

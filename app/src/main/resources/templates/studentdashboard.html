@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background-color: green;
+            margin-bottom: 8px;
+        }
+
+        .status-closed {
+            background-color: crimson;
+        }
+
+        li.job-item {
+            background-color: #111;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<header class="dashboard-header">
+    <div class="logo-container">
+        <img src="/images/logoPesu.png" alt="PES Logo" class="logo">
+    </div>
+    <div class="logout-container">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="myBtn logout-button">Logout</button>
+        </form>
+    </div>
+</header>
+
+<main class="dashboard-content">
+    <h1>Welcome to the Student Dashboard</h1>
+    <p>This is where you'll see job postings, application status, and more.</p>
+
+    <!-- View Assigned Job Openings Button -->
+    <button id="view-assigned-jobs-btn" class="myBtn">View Assigned Job Openings</button>
+
+    <!-- Section for displaying assigned job openings -->
+    <div id="assigned-job-openings-list" style="display:none; margin-top: 20px;">
+        <h3>Your Assigned Job Openings:</h3>
+        <ul id="assigned-job-openings-ul"></ul>
+    </div>
+</main>
+
+<script>
+    document.getElementById('view-assigned-jobs-btn').addEventListener('click', function () {
+        const assignedSection = document.getElementById('assigned-job-openings-list');
+        assignedSection.style.display = assignedSection.style.display === 'none' ? 'block' : 'none';
+
+        fetch('/api/student/assigned-jobs')
+            .then(response => response.json())
+            .then(data => {
+                const jobList = document.getElementById('assigned-job-openings-ul');
+                jobList.innerHTML = '';
+                data.forEach(job => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('job-item');
+
+                    const statusClass = job.open ? '' : 'status-closed';
+                    const statusText = job.open ? 'Open' : 'Closed';
+
+                    listItem.innerHTML = `
+                    <div class="status-badge ${statusClass}">${statusText}</div><br>
+                    <strong>${job.jobTitle}</strong> at ${job.companyName}<br>
+                    <p>${job.jobDescription}</p>
+                    ${job.open ? `<button class="myBtn" onclick="applyToJob(${job.jobId})">Apply</button>` : ''}
+                    <button class="myBtn" onclick="requestWithdraw(${job.jobId})">Withdraw</button>
+                    <hr>
+                    `;
+
+                    jobList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error fetching assigned jobs:', error));
+    });
+
+    function requestWithdraw(jobId) {
+        fetch('/api/student/withdraw', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ jobId })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Withdraw request sent successfully.');
+            } else if (response.status === 400) {
+                alert("You have not applied for this job.");
+            } else if (response.status === 409) {
+                alert('You already requested withdrawal for this job.');
+            } else {
+                alert('Error submitting withdraw request.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error submitting withdraw request.');
+        });
+    }
+
+    function applyToJob(jobId) {
+        fetch('/api/student/apply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ jobId })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Application submitted successfully!');
+            } else if (response.status === 409) {
+                alert('Already applied.');
+            } else {
+                alert('Error applying for job.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error applying for job.');
+        });
+    }
+</script>
+
+
+</body>
+</html>

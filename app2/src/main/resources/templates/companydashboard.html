@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Company Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background-color: green;
+        }
+
+        .status-closed {
+            background-color: crimson;
+        }
+
+        li.job-item {
+            background-color: #111;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .logout-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+
+        .logout-button:hover {
+            background-color: #c82333;
+        }
+
+        .myBtn {
+            padding: 8px 12px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .myBtn:hover {
+            background-color: #0056b3;
+        }
+
+        .applicants-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .applicants-list li {
+            margin: 5px 0;
+        }
+
+        /* Job creation form styles */
+        .job-form {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .job-form input, .job-form select, .job-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .job-form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+        }
+
+        .job-form button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<header class="dashboard-header">
+    <div class="logo-container">
+        <img src="/images/logoPesu.png" alt="PES Logo" class="logo">
+    </div>
+    <div class="logout-container">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="logout-button">Logout</button>
+        </form>
+    </div>
+</header>
+
+<main class="dashboard-content">
+    <h1>Welcome to the Company Dashboard</h1>
+    <p>Here you can view and manage your job openings.</p>
+
+    <!-- Add Job Form -->
+    <div class="job-form">
+        <h3>Create a New Job Opening</h3>
+        <form id="create-job-form">
+            <input type="text" id="jobTitle" placeholder="Job Title" required>
+            <textarea id="jobDescription" placeholder="Job Description" rows="4" required></textarea>
+            <input type="text" id="preferredBranch" placeholder="Preferred Branch" required>
+            <input type="number" id="minGpa" placeholder="Minimum GPA" required step="0.1" min="0" max="10">
+            <input type="number" id="roundsLeft" placeholder="Rounds Left" required min="1">
+            <button type="submit" class="myBtn">Create Job</button>
+        </form>
+    </div>
+
+    <!-- View Job Openings Button -->
+    <button id="view-company-jobs-btn" class="myBtn">View Job Openings</button>
+
+    <div id="company-jobs-list" style="display:none; margin-top: 20px;">
+        <h3>Job Openings:</h3>
+        <ul id="company-jobs-ul"></ul>
+    </div>
+</main>
+
+<script>
+    document.getElementById('create-job-form').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the form from submitting the usual way
+
+    const jobTitle = document.getElementById('jobTitle').value;
+    const jobDescription = document.getElementById('jobDescription').value;
+    const preferredBranch = document.getElementById('preferredBranch').value;
+    const minGpa = parseFloat(document.getElementById('minGpa').value);
+    const roundsLeft = parseInt(document.getElementById('roundsLeft').value);
+
+    const numberOfRoundsLeft = parseInt(document.getElementById('roundsLeft').value); // ✅ correctly named
+
+    const newJob = {
+        jobTitle,
+        jobDescription,
+        preferredBranch,
+        minGpa,
+        numberOfRoundsLeft // ✅ now works because it's defined above
+    };
+
+
+    // Fetch company name from the backend dynamically
+    fetch('/api/company/job-openings/company-name')  // Create a new endpoint for fetching company name
+        .then(response => response.text()) // 🔑 use .text() instead of .json()
+
+        .then(companyName => {
+            newJob.companyName = companyName; // Add company name to the job object
+            return fetch('/api/company/job-openings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newJob)
+            });
+        })
+        .then(response => {
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+        return response.json();
+        })
+        .then(data => {
+            alert('Job opening created successfully!');
+            document.getElementById('create-job-form').reset();
+        })
+        .catch(error => {
+            console.error('Error creating job opening:', error);
+            alert('Error creating job opening.');
+        });
+
+    });
+
+
+    // Existing code for viewing job openings
+    document.getElementById('view-company-jobs-btn').addEventListener('click', function () {
+        const jobSection = document.getElementById('company-jobs-list');
+        jobSection.style.display = jobSection.style.display === 'none' ? 'block' : 'none';
+
+        fetch('/api/company/job-openings')
+            .then(response => response.json())
+            .then(data => {
+                const jobList = document.getElementById('company-jobs-ul');
+                jobList.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    jobList.innerHTML = '<li>No job openings found.</li>';
+                    return;
+                }
+
+                data.forEach(job => {
+                    const statusClass = job.isOpen ? '' : 'status-closed';
+                    const statusText = job.isOpen ? 'Open' : 'Closed';
+
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('job-item');
+
+                    listItem.innerHTML = `
+                        <div class="status-badge ${statusClass}">${statusText}</div>
+                        <strong>${job.jobTitle}</strong><br>
+                        <small>Preferred Branch: ${job.preferredBranch}, Min GPA: ${job.minGpa}, Rounds Left: ${job.numberOfRoundsLeft}</small>
+                        <p>${job.jobDescription}</p>
+                        <button class="myBtn shortlist-btn" data-jobid="${job.jobID}">View and Shortlist Applicants</button>
+                        <div class="applicants-section" id="applicants-${job.jobID}" style="display: none;">
+                            <form class="shortlist-form" data-jobid="${job.jobID}">
+                                <ul class="applicants-list"></ul>
+                                <button type="submit" class="myBtn">Submit Shortlist</button>
+                            </form>
+                        </div>
+                        <hr>
+                    `;
+                    jobList.appendChild(listItem);
+                });
+
+                attachShortlistEventListeners(); // add click + submit listeners
+            })
+            .catch(error => {
+                console.error('Error fetching job openings:', error);
+                alert("Failed to load job openings.");
+            });
+    });
+
+    function attachShortlistEventListeners() {
+        document.querySelectorAll('.shortlist-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const jobId = btn.dataset.jobid;
+                const section = document.getElementById(`applicants-${jobId}`);
+                section.style.display = section.style.display === 'none' ? 'block' : 'none';
+
+                fetch(`/api/company/applicants/${jobId}`)
+                    .then(response => response.json())
+                    .then(applicants => {
+                        const list = section.querySelector('.applicants-list');
+                        list.innerHTML = '';
+
+                        if (!applicants || applicants.length === 0) {
+                            list.innerHTML = '<li>No applicants found.</li>';
+                            return;
+                        }
+
+                        applicants.forEach(app => {
+                            const item = document.createElement('li');
+                            item.innerHTML = `
+                                <label>
+                                    <input type="checkbox" name="selected" value="${app.srn}" />
+                                    ${app.srn} | Rounds Passed: ${app.roundsPassed}
+                                </label>
+                            `;
+                            list.appendChild(item);
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Error loading applicants:", err);
+                        alert("Could not fetch applicants.");
+                    });
+            });
+        });
+
+        document.querySelectorAll('.shortlist-form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const jobId = form.dataset.jobid;
+                const selected = Array.from(form.querySelectorAll('input[name="selected"]:checked'))
+                    .map(cb => cb.value);
+
+                if (selected.length === 0) {
+                    alert('Please select at least one applicant.');
+                    return;
+                }
+
+                fetch(`/api/company/shortlist/${jobId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ srns: selected })
+                })
+                .then(res => {
+                    if (res.ok) {
+                        alert("Shortlisting successful.");
+                        location.reload();
+                    } else {
+                        throw new Error("Shortlist request failed");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error submitting shortlist:", err);
+                    alert("Failed to submit shortlist.");
+                });
+            });
+        });
+    }
+</script>
+
+</body>
+</html>

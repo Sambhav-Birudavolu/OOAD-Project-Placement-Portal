@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+body {
+    background: url('../images/login_bg_acdemy.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Open Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #fff;
+}
+
+h2 {
+    color: #003153; /* Prussian Blue */
+}
+
+.myForm {
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 40px;
+    border-radius: 10px;
+    max-width: 400px;
+    margin: auto;
+    margin-top: 100px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.myBtn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    width: 100%;
+    font-weight: 600;
+}
+
+.myBtn:hover {
+    background-color: #0056b3;
+}
+
+.btn-orange {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: orange;
+    color: white !important;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.btn-orange:hover {
+    background-color: darkorange;
+}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="ISO-8859-1" />
+    <title>Admin Login</title>
+
+    <!-- Your custom CSS with background image -->
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/style.css}" />
+</head>
+
+<body>
+
+<div class="row" style="margin-right:0">
+    <div class="col-md-6">
+        <div class="Job-portal-register">
+            <div class="logo_left mt-3 pt-4 ms-5 pl-5">
+                <h2 class="logo">PES University Placements Portal</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="myForm" style="align-items:center">
+            <form th:action="@{/adminlogin}" method="post">
+                <h1 class="text-center bold font-weight-bold mb-4">Admin Login</h1>
+                <div class="form-group">
+                    <input
+                            placeholder="Admin ID (AID)"
+                            name="username"
+                            type="text"
+                            class="form-control"
+                            required
+                    />
+                </div>
+                <div class="form-group">
+                    <input
+                            placeholder="Password"
+                            name="password"
+                            type="password"
+                            class="form-control"
+                            required
+                    />
+                </div>
+                <div class="clearfix mb-4">
+                    <label class="float-left form-check-label"><input type="checkbox" /> Remember me</label>
+                    <a href="#" class="color-text float-right">Forgot Password?</a>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="myBtn">Log in</button>
+                </div>
+            </form>
+
+            <!-- Link to Student Login -->
+            <div class="form-group text-center mt-3">
+                <a th:href="@{/studentlogin}" class="btn-orange">Go to Student Login Page?</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
